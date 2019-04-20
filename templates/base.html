@@ -6,17 +6,29 @@
             .error {
                 color: red;
             }
+            h1 {
+                text-align: center;
+            }
+
+            input {
+                display: block;
+            }
+
+            textarea {
+                display: block;
+            }
+
         </style>
     </head>
 <body>
 
-    <div>
-        <a href='/blog'>main blog page</a>
+    <div class="link">
+        <h3><a href='/blog'>Main Blog Page</a></h3>
     </div>
 
-    <div>
-            <a href='/newpost'>add a blog post</a>
-        </div>
+    <div class="link">
+        <h3><a href='/newpost'>Add a Blog Post</a></h3>
+    </div>
 
     {% block content %}
     {% endblock %}

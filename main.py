@@ -26,10 +26,6 @@ def index():
 
     if request.args.get("id"):
 
-        #blogs = Blog.query.all()
-        #return render_template("blog.html", title="Build a Blog", blogs=blogs)
-
-    #else:
         blog_id = request.args.get("id")
         blog = Blog.query.filter_by(id=blog_id).first()
         return render_template("oneblog.html", blog_title=blog.title, blog_body=blog.body ,blog_id=blog.id)
@@ -40,8 +36,6 @@ def index():
 
 @app.route('/newpost', methods=['POST', 'GET'])
 def newpost():
-    #blog_title = ""
-    #log_body = ""
 
     if request.method =="POST":
         title_error = ''
@@ -60,13 +54,12 @@ def newpost():
         new_blog = Blog(blog_title, blog_body)
         db.session.add(new_blog)
         db.session.commit()
-
-        return redirect('/blog')
+        blog_id = str(new_blog.id)
+        return redirect('/blog?id='+ blog_id)
 
     else:
-        #blog_title = ""
-        #blog_body = ""
-        return render_template("newpost.html")#blog_title=blog_title, blog_body=blog_body)
+
+        return render_template("newpost.html")
 
 if __name__ == '__main__':
     app.run()

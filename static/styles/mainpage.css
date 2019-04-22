@@ -1,0 +1,31 @@
+.error {
+    color: red;
+}
+
+body {
+    background-color: hsl(191, 93%, 48%);
+    font-size: 20px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    line-height: 2.0;
+ }
+ 
+
+h1 {
+    text-align: center;
+}
+
+input {
+    display: block;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+textarea {
+    display: block;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+nav ul li {
+    display: inline-block;
+    padding: 5px;
+}

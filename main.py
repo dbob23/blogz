@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://build-a-blog:launchcode@localhost:8889/build-a-blog'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://blogz:launchcode@localhost:8889/blogz'
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
 
@@ -14,11 +14,26 @@ class Blog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120))
     body = db.Column(db.String(120))
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    def __init__(self, title, body):
+    def __init__(self, title, body, owner):
 
         self.title = title
         self.body = body
+        self.owner = owner
+
+class User(db.Model):
+    
+    id = db.Column(db.Integer, primary_key = True)
+    username = db.Column(db.String(120))
+    password = db.Column(db.String(120))
+    blogs = db.relationship('Blog', backref='owner')
+
+    def __init__(self, username, password):
+
+        self.username = username
+        self.password = password
+         
 
 
 @app.route('/blog', methods=[ 'GET'])
@@ -42,6 +57,7 @@ def newpost():
         entry_error = ''
         blog_title = request.form["blog_title"]
         blog_body = request.form["blog_body"]
+        blog_owner = session['username']
 
         if  not blog_title:
             title_error = "Please enter a title for your blog post."
@@ -51,7 +67,7 @@ def newpost():
             entry_error = "Please enter a blog post."
             return render_template("newpost.html", blog_title=blog_title, blog_body=blog_body, title_error=title_error, entry_error=entry_error)
 
-        new_blog = Blog(blog_title, blog_body)
+        new_blog = Blog(blog_title, blog_body, blog_owner)
         db.session.add(new_blog)
         db.session.commit()
         blog_id = str(new_blog.id)
@@ -61,5 +77,71 @@ def newpost():
 
         return render_template("newpost.html")
 
+
+@app.route('/login', methods=['POST', 'GET'])
+def login():
+    name_error = ''
+    password_error = ''
+
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(username=username).first()
+        if user and user.password == password:
+            session['username'] = username
+            return redirect('/newpost')
+        elif user and user.password != user.password:
+            password_error = "You have entered an incorrect password. Please try again."
+            return render_template("/login.html", username=username, password='', name_error=name_error, password_error=password_error)
+        else:
+            name_error = "Invalid username."
+            return render_template("login.html", username= '', password='', name_error=name_error, password_error=password_error)
+
+    return render_template('login.html')
+
+
+@app.route('/signup', methods=['Post', 'Get'])
+def signup():
+    if request.method == 'POST':
+        name_error = ''
+        password_error = ''
+        verify_error = ''
+        empty_error = ''
+        username = request.form["username"]
+        password = request.form["password"]
+        verify = request.form["verify"]
+
+        if not username or not password or not verify:
+            empty_error = "One or more fields have been left empty. Please try again."
+            render_template("signup.html", username=username, password='', verify='', name_error=name_error, password_error=password_error, verify_error=verify_error, empty_error=empty_error)
+
+        if len(username) <= 2:
+            name_error = "Username must contain at least three characters."
+            return render_template("signup.html", username='', password='', verify='', name_error=name_error, password_error=password_error, verify_error=verify_error, empty_error=empty_error)
+
+        if len(password) <= 2:
+            password_error = "Password must contain least three characters."
+            return render_template("signup.html", username=username, password='', verify='', name_error=name_error, password_error=password_error, verify_error=verify_error, empty_error=empty_error)
+
+        if verify != password:
+            verify_error = "Password verification does not match password. Please try again."
+            return render_template("signup.html", username=username, password='', verify='', name_error=name_error, password_error=password_error, verify_error=verify_error, empty_error=empty_error)
+
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            name_error = "A user with that name already exists. Please try again."
+            return render_template("signup.html", username='', password='', verify='', name_error=name_error, password_error=password_error, verify_error=verify_error, empty_error=empty_error)
+            
+        else:
+            new_user = User(username, password)
+            db.session.add(new_user)
+            db.session.commit()
+            session['username'] = username
+            return redirect('/newpost')
+
+
+    return render_template("signup.html")
+
+
 if __name__ == '__main__':
-    app.run()
+    app.run() 

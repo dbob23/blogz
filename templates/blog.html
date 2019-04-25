@@ -9,7 +9,7 @@
     {% else %}
 
         <p>
-            {% for blog in blogs %}
+            {% for blog in blogs|reverse %}
         <h2><a href="/blog?id={{blog.id}}">{{blog.title}}</a></h2>
             <div>{{blog.body}}</div>
 

@@ -2,10 +2,10 @@
 
 {% block content %}
     <h1>Add a New Post</h1>
-    <form action="/newpost" method='post'>
+    <form action="/newpost" method='Post'>
         <p>
             <label for="blog_title">Title of New Post</label>
-            <input type="text" name="blog_title" value="{{blog_title}}"/>
+            <input type="text" id="blog_title"name="blog_title" value="{{blog_title}}"/>
             <div class="error">{{title_error}}</div>
         </p>
         <p>

@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, render_template
+from flask import Flask, request, redirect, render_template, session
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -8,12 +8,13 @@ app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://blogz:launchcode@localhost:8889/blogz'
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
+app.secret_key = 'ou812'
 
 class Blog(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120))
-    body = db.Column(db.String(120))
+    body = db.Column(db.String(200))
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     def __init__(self, title, body, owner):
@@ -64,17 +65,16 @@ def newpost():
             return render_template("newpost.html", blog_title=blog_title, blog_body=blog_body, title_error=title_error, entry_error=entry_error)
 
         if not blog_body:
-            entry_error = "Please enter a blog post."
+            entry_error = "Please enter a blog."
             return render_template("newpost.html", blog_title=blog_title, blog_body=blog_body, title_error=title_error, entry_error=entry_error)
 
-        new_blog = Blog(blog_title, blog_body, blog_owner)
+        new_blog = Blog(title=blog_title, body=blog_body, owner=blog_owner)
+        #new_blog = Blog("blog", "abc", "123")
         db.session.add(new_blog)
         db.session.commit()
         blog_id = str(new_blog.id)
         return redirect('/blog?id='+ blog_id)
-
     else:
-
         return render_template("newpost.html")
 
 
@@ -90,7 +90,7 @@ def login():
         if user and user.password == password:
             session['username'] = username
             return redirect('/newpost')
-        elif user and user.password != user.password:
+        if user and user.password != password:
             password_error = "You have entered an incorrect password. Please try again."
             return render_template("/login.html", username=username, password='', name_error=name_error, password_error=password_error)
         else:
@@ -139,8 +139,8 @@ def signup():
             session['username'] = username
             return redirect('/newpost')
 
-
-    return render_template("signup.html")
+    else:
+        return render_template("signup.html")
 
 
 if __name__ == '__main__':

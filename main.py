@@ -30,15 +30,24 @@ class User(db.Model):
     password = db.Column(db.String(120))
     blogs = db.relationship('Blog', backref='owner')
 
+
     def __init__(self, username, password):
 
         self.username = username
         self.password = password
-         
+
+    def __repr__(self):
+        return '<User %r>' % self.username
+
+@app.before_request
+def require_login():
+    allowed_routes = ['login', 'list_blogs', 'index', 'signup']
+    if request.endpoint not in allowed_routes and 'username' not in session:
+        return redirect('/login')      
 
 
 @app.route('/blog', methods=[ 'GET'])
-def index():
+def list_blogs():
 
     if request.args.get("id"):
 
@@ -49,6 +58,10 @@ def index():
         blogs = Blog.query.all()
         return render_template("blog.html", title="Build a Blog", blogs=blogs)
 
+@app.route("/")
+def index():
+    users = User.query.all()
+    return render_template('index.html', users=users)
 
 @app.route('/newpost', methods=['POST', 'GET'])
 def newpost():
@@ -68,7 +81,8 @@ def newpost():
             entry_error = "Please enter a blog."
             return render_template("newpost.html", blog_title=blog_title, blog_body=blog_body, title_error=title_error, entry_error=entry_error)
 
-        new_blog = Blog(title=blog_title, body=blog_body, owner=blog_owner)
+        new_owner = User.query.filter_by(username=blog_owner).first()
+        new_blog = Blog(title=blog_title, body=blog_body, owner=new_owner)
         #new_blog = Blog("blog", "abc", "123")
         db.session.add(new_blog)
         db.session.commit()
@@ -141,6 +155,11 @@ def signup():
 
     else:
         return render_template("signup.html")
+
+@app.route('/logout')
+def logout():
+    del session['username']
+    return redirect('/blog')
 
 
 if __name__ == '__main__':

@@ -36,8 +36,11 @@ class User(db.Model):
         self.username = username
         self.password = password
 
-    def __repr__(self):
-        return '<User %r>' % self.username
+    #def __repr__(self):
+        #return '<User %r>' % self.username
+#def get_blog_author(id):
+    #user = User.query.filter_by(id=id).first()
+    #return User.query.get(user.username)
 
 @app.before_request
 def require_login():
@@ -49,11 +52,25 @@ def require_login():
 @app.route('/blog', methods=[ 'GET'])
 def list_blogs():
 
+
+    if request.args.get("user"):
+        user_id = (request.args.get("user"))
+        users_blogs = Blog.query.filter_by(owner_id=user_id).all()
+        user_author = User.query.filter_by(id=user_id).first()
+        #user_author_name = user_author.query.get(username)
+        return render_template('one_author.html', users_blogs=users_blogs, author=user_author.username)
+
+
+
     if request.args.get("id"):
 
         blog_id = request.args.get("id")
         blog = Blog.query.filter_by(id=blog_id).first()
-        return render_template("oneblog.html", blog_title=blog.title, blog_body=blog.body ,blog_id=blog.id)
+        one_user = User.query.filter_by(id=blog.owner_id).first()
+        one_user_id = User.query.get(one_user.id)
+        #username = User.query.get(one_user.username)
+        return render_template("oneblog.html", blog_title=blog.title, blog_body=blog.body ,blog_id=blog.id, username=one_user.username, user_id=one_user_id)
+
     else:
         blogs = Blog.query.all()
         return render_template("blog.html", title="Build a Blog", blogs=blogs)
@@ -83,7 +100,6 @@ def newpost():
 
         new_owner = User.query.filter_by(username=blog_owner).first()
         new_blog = Blog(title=blog_title, body=blog_body, owner=new_owner)
-        #new_blog = Blog("blog", "abc", "123")
         db.session.add(new_blog)
         db.session.commit()
         blog_id = str(new_blog.id)

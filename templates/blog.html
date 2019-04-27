@@ -10,8 +10,10 @@
 
         <p>
             {% for blog in blogs|reverse %}
+
         <h2><a href="/blog?id={{blog.id}}">{{blog.title}}</a></h2>
             <div>{{blog.body}}</div>
+            <small>written by <a href="/blog?user={{blog.owner_id}}">{{blog.owner}}</a></small>
 
             {% endfor %}
         </p>
